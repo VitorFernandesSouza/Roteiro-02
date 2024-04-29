@@ -1,10 +1,10 @@
-package com.labSoftware.labSoftware;
+package io.projeto.roteiro02.todoapp;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class LabSoftwareApplicationTests {
+class TodoAppApplicationTests {
 
 	@Test
 	void contextLoads() {
