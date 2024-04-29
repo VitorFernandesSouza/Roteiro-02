@@ -1,41 +1,44 @@
 package io.projeto.roteiro02.todoapp;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
 
 import io.projeto.roteiro02.todoapp.entity.Todo;
 import io.projeto.roteiro02.todoapp.entity.User;
 import io.projeto.roteiro02.todoapp.repository.TodoRepository;
 import io.projeto.roteiro02.todoapp.repository.UserRepository;
 
-import java.util.List;
-
 @SpringBootApplication
-public class TodoAppApplication implements CommandLineRunner  {
-
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TodoRepository todoRepository;
+public class TodoAppApplication {
 
     public static void main(String[] args) {
         SpringApplication.run(TodoAppApplication.class, args);
     }
 
-    @Override
-    public void run(String... args) throws Exception {
+    /**
+     * @param userRepository
+     * @param todoRepository
+     * @return
+     */
+    @Bean
+    public CommandLineRunner demo(UserRepository userRepository, TodoRepository todoRepository) {
+        return (args) -> {
+            // Cria um usuário
+            User user = new User();
+            user.setPassword("123");
+            user.setUsername("Vitor");
 
-        User user = new User();
-        user.setPassword("should be hashed");
-        user.setUsername("John");
+            // Cria uma tarefa
+            Todo todo  = new Todo();
+            todo.setContent("teste");
 
-        Todo todo  = new Todo();
-        todo.setContent("Upload video to YT");
+            // Adiciona a tarefa à lista de tarefas do usuário
+            user.getTodoList().add(todo);
 
-        user.getTodoList().add(todo);
-
-        userRepository.save(user);
+            // Salva o usuário no banco de dados
+            userRepository.save(user);
+        };
     }
 }
