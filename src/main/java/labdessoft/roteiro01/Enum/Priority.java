@@ -1,4 +1,4 @@
-package io.projeto.roteiro02.todoapp.request;
+package com.labdessoft.roteiro01.Enum;
 
 public enum Priority {
     ALTA,
