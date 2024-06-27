@@ -1,185 +1,105 @@
 package com.labdessoft.roteiro01.entity;
 
 import io.swagger.v3.oas.annotations.media.Schema;
-import jakarta.persistence.Entity;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.FutureOrPresent;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
+import java.time.Period;
 
-@Setter
-@Getter
-@Schema(description = "Todos os detalhes sobre uma tarefa.")
 @Entity
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class Task {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    
-    @Schema(description = "Título da tarefa.")
-    private String title;
 
-    @Schema(description = "Descrição da tarefa.")
+    @Schema(name = "Nome da tarefa")
+    private String name;
+
+    @Schema(name = "Descrição da tarefa deve possuir pelo menos 10 caracteres")
+    @Size(min = 10, message = "Descrição da tarefa deve possuir pelo menos 10 caracteres")
+    @Column(nullable = false)
     private String description;
 
-    @Schema(description = "Indica se a tarefa foi concluída.")
-    private boolean completed;
+    private Boolean completed;
 
-    @Schema(description = "Data prevista de conclusão da tarefa.")
+    // Inicialização de taskType
+    @Column(nullable = true)
+    private Integer taskType = TaskType.DATA.ordinal();
+
+    @FutureOrPresent(message = "A data prevista de conclusão deve ser igual ou superior à data atual")
     private LocalDate dueDate;
 
-    @Schema(description = "Prazo previsto de conclusão da tarefa (em dias).")
-    private Integer dueDays;
+    @Column(nullable = false, columnDefinition = "integer default 0")
+    private int dueDays;
 
-    @Schema(description = "Tipo de tarefa (Data, Prazo, Livre).")
-    @Enumerated(EnumType.STRING)
-    private TaskType taskType;
+    @Column(nullable = true)
+    private Integer priorityLevel;
 
-    @Schema(description = "Prioridade da tarefa (Alta, Média, Baixa).")
-    @Enumerated(EnumType.STRING)
-    private TaskPriority priority;
+    private String category; // Novo campo para categoria
 
-    public Task() {
-        this.completed = false;
-        this.taskType = TaskType.LIVRE;
-        this.priority = TaskPriority.BAIXA;
+    public Task(Object o, String newTask, String newDescription) {
     }
 
-    public Task(String title, String description, LocalDate dueDate, Integer dueDays, TaskPriority priority) {
-        this.title = title;
-        this.description = description;
-        this.completed = false;
-        this.dueDate = dueDate;
-        this.dueDays = dueDays;
-        this.taskType = determineTaskType(dueDate, dueDays);
-        this.priority = priority;
-    }
-
-    private TaskType determineTaskType(LocalDate dueDate, Integer dueDays) {
-        if (dueDate != null) {
-            return TaskType.DATA;
-        } else if (dueDays != null) {
-            return TaskType.PRAZO;
-        } else {
-            return TaskType.LIVRE;
-        }
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public boolean isCompleted() {
-        return completed;
-    }
-
-    public void setCompleted(boolean completed) {
-        this.completed = completed;
-    }
-
-    public LocalDate getDueDate() {
-        return dueDate;
-    }
-
-    public void setDueDate(LocalDate dueDate) {
-        this.dueDate = dueDate;
-        this.taskType = determineTaskType(dueDate, dueDays);
-    }
-
-    public Integer getDueDays() {
-        return dueDays;
-    }
-
-    public void setDueDays(Integer dueDays) {
-        this.dueDays = dueDays;
-        this.taskType = determineTaskType(dueDate, dueDays);
-    }
-
-    public TaskType getTaskType() {
+    // Métodos auxiliares
+    public Integer getTaskType() {
         return taskType;
     }
 
-    public TaskPriority getPriority() {
-        return priority;
+    // Método auxiliar para verificar se taskType é null
+    public boolean isTaskTypeNull() {
+        return taskType == null;
     }
 
-    public void setPriority(TaskPriority priority) {
-        this.priority = priority;
+    public String getCategory() {
+        return category;
     }
 
-    public void markAsCompleted() {
-        this.completed = true;
-    }
-
-    public void markAsNotCompleted() {
-        this.completed = false;
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public String getStatus() {
-        LocalDate today = LocalDate.now();
-        switch (taskType) {
+        LocalDate currentDate = LocalDate.now();
+        switch (TaskType.values()[taskType]) {
             case DATA:
-                if(completed){
+                if (completed) {
                     return "Concluída";
-                }else if (dueDate.isAfter(today)) {
-                    return "Prevista";
-                } else if (dueDate.isBefore(today)) {
-                    long daysLate = ChronoUnit.DAYS.between(dueDate, today);
+                } else if (dueDate != null && dueDate.isBefore(currentDate)) {
+                    long daysLate = Period.between(dueDate, currentDate).getDays();
                     return daysLate + " dias de atraso";
-                } 
-            case PRAZO:
-                LocalDate dueDateFromDays = LocalDate.now().plusDays(dueDays);
-                if(completed){
-                    return "Concluída";
-                }else if (dueDateFromDays.isAfter(today)) {
+                } else {
                     return "Prevista";
-                } else if (dueDateFromDays.isBefore(today)) {
-                    long daysLate = ChronoUnit.DAYS.between(dueDateFromDays, today);
-                    return daysLate + " dias de atraso";
                 }
-            default:
+            case PRAZO:
+                if (completed) {
+                    return "Concluída";
+                } else if (dueDate != null && currentDate.isAfter(dueDate.plusDays(dueDays))) {
+                    long daysLate = Period.between(dueDate.plusDays(dueDays), currentDate).getDays();
+                    return daysLate + " dias de atraso";
+                } else {
+                    return "Prevista";
+                }
+            case LIVRE:
                 return completed ? "Concluída" : "Prevista";
+            default:
+                return "Tipo de tarefa inválido";
         }
     }
 
     @Override
     public String toString() {
-        return "Task{" +
-                "id=" + id +
-                ", title='" + title + '\'' +
-                ", description='" + description + '\'' +
-                ", completed=" + completed +
-                ", dueDate=" + dueDate +
-                ", dueDays=" + dueDays +
-                ", taskType=" + taskType +
-                ", priority=" + priority +
-                '}';
+        return "Task [id=" + id + ", name=" + name + ", description=" + description +
+                ", completed=" + completed + ", taskType=" + taskType +
+                ", priorityLevel=" + priorityLevel + ", category=" + category + "]";
     }
 }

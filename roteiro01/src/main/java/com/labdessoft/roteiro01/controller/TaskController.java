@@ -2,13 +2,13 @@ package com.labdessoft.roteiro01.controller;
 
 import com.labdessoft.roteiro01.entity.Task;
 import com.labdessoft.roteiro01.service.TaskService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 import java.util.List;
-import java.util.Optional;
-import io.swagger.v3.oas.annotations.Operation;
 
 @RestController
 @RequestMapping("/tasks")
@@ -17,48 +17,86 @@ public class TaskController {
     @Autowired
     private TaskService taskService;
 
-    @GetMapping
-    @Operation(summary = "Lista todas as tarefas da lista")
-    public ResponseEntity<List<Task>> listAll() {
-        List<Task> taskList = taskService.listAllTasks();
-        if (taskList.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
-        }
-        return new ResponseEntity<>(taskList, HttpStatus.OK);
+    // Injeta o serviço de tarefas no construtor
+    public TaskController(TaskService taskService) {
+        this.taskService = taskService;
     }
 
-    @GetMapping("/{id}")
-    @Operation(summary = "Listar tarefa por id")
-    public ResponseEntity<Task> getTaskById(@PathVariable Long id) {
-        Optional<Task> task = taskService.getTaskById(id);
-        return task.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    @GetMapping
+    public ResponseEntity<List<Task>> getAllTasks() {
+        List<Task> tasks = taskService.getAllTasks();
+        tasks.forEach(task -> {
+            if (task.getCompleted() == null) {
+                task.setCompleted(false);
+            }
+            if (task.isTaskTypeNull()) {
+                task.setTaskType(0);
+            }
+        });
+        return new ResponseEntity<>(tasks, HttpStatus.OK);
     }
 
     @PostMapping
-    @Operation(summary = "Criar uma nova tarefa")
-    public ResponseEntity<Task> createTask(@RequestBody Task newTask) {
-        try {
-            Task task = taskService.createTask(newTask);
-            return ResponseEntity.status(HttpStatus.CREATED).body(task);
-        } catch (Exception e) {
-            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
+    public ResponseEntity<Task> createTask(@RequestBody Task task) {
+        Task createdTask = taskService.createTask(task);
+        return new ResponseEntity<>(createdTask, HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Editar tarefa")
-    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task updatedTask) {
-        Optional<Task> task = taskService.updateTask(id, updatedTask);
-        return task.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<Task> updateTask(@PathVariable Long id, @RequestBody Task taskDetails) {
+        Task updatedTask = taskService.updateTask(id, taskDetails);
+        if (updatedTask == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(updatedTask);
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Deletar Tarefa")
     public ResponseEntity<Void> deleteTask(@PathVariable Long id) {
-        if (taskService.deleteTask(id)) {
-            return ResponseEntity.noContent().build();
-        } else {
+        boolean isRemoved = taskService.deleteTask(id);
+        if (!isRemoved) {
             return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/manage")
+    @Operation(summary = "Gerencie as tarefas da lista")
+    public ResponseEntity<List<Task>> gerenciarTarefas() {
+        List<Task> taskList = taskService.gerenciarTarefas();
+        if (taskList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(taskList);
+    }
+
+    @PutMapping("/complete")
+    @Operation(summary = "Concluir tarefas da lista")
+    public ResponseEntity<Task> concluirTarefas(@RequestParam Long taskId) {
+        Task completedTask = taskService.concluirTarefa(taskId);
+        if (completedTask == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(completedTask);
+    }
+
+    @GetMapping("/prioritize")
+    @Operation(summary = "Priorizar tarefas da lista")
+    public ResponseEntity<List<Task>> priorizarTarefas() {
+        List<Task> taskList = taskService.priorizarTarefas();
+        if (taskList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(taskList);
+    }
+
+    @GetMapping("/categorize")
+    @Operation(summary = "Categorizar tarefas da lista")
+    public ResponseEntity<List<Task>> categorizarTarefas() {
+        List<Task> taskList = taskService.categorizarTarefas();
+        if (taskList.isEmpty()) {
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok(taskList);
     }
 }
