@@ -7,7 +7,7 @@
   }
   
   body {
-    background-image: url("../img/fundo.jpg");
+    background-color: blueviolet;
     background-position: center;
     background-size: cover;
   }
