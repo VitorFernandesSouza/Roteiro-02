@@ -1,23 +1,13 @@
 # Etapa de build
 FROM ubuntu:latest AS build
 
-# Instalação do JDK e Maven
 RUN apt-get update
-RUN apt-get install openjdk-11-jdk -y  # Corrigido para openjdk-11-jdk
-RUN apt-get install maven -y
-
-# Copia do código fonte e construção do projeto Maven
+RUN apt-get install openjdk-17-jdk -y
 COPY . .
+RUN apt-get install maven -y
 RUN mvn clean install
 
-# Segunda etapa: criação da imagem final
-FROM openjdk:11-jdk-slim
-
-# Expor a porta 8080 para fora do container
+FROM openjdk:17-jdk-slim
 EXPOSE 8080
-
-# Copia o arquivo JAR construído na etapa anterior para o container
-COPY --from=build target/roteiro01-0.0.1-SNAPSHOT.jar app.jar
-
-# Comando para executar a aplicação quando o container for iniciado
+COPY --from=build /target/roteiro01-0.0.1-SNAPSHOT.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
