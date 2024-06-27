@@ -3,7 +3,7 @@ import TaskList from "./components/TaskList.jsx";
 import TaskForm from "./components/TaskForm.jsx";
 import "./style.css";
 
-const API_URL = "https://to-do-list-bekv.onrender.com"; // Verifique esta URL
+const API_URL = "https://to-do-list-bekv.onrender.com/api/tasks"; // Verifique esta URL
 
 const App = () => {
   const [tasks, setTasks] = useState([]);
