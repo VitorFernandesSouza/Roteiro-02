@@ -2,20 +2,17 @@
     "configurations": [
         {
             "type": "java",
-            "name": "Spring Boot-Roteiro01Application<roteiro01>",
+            "name": "Roteiro01Application",
             "request": "launch",
-            "cwd": "${workspaceFolder}",
             "mainClass": "com.labdessoft.roteiro01.Roteiro01Application",
-            "projectName": "roteiro01",
-            "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "projectName": "roteiro01"
         },
         {
             "type": "java",
             "name": "Spring Boot-Roteiro01Application<roteiro01>",
             "request": "launch",
             "cwd": "${workspaceFolder}",
-            "mainClass": "com.labdessoft.Roteiro01Application",
+            "mainClass": "com.labdessoft.roteiro01.Roteiro01Application",
             "projectName": "roteiro01",
             "args": "",
             "envFile": "${workspaceFolder}/.env"
