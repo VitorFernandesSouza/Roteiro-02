@@ -1,21 +1,9 @@
-# Estágio de construção
-FROM maven:3.8.5-openjdk-11 AS build
-
-WORKDIR /app
-
-COPY pom.xml .
-RUN mvn dependency:go-offline
-
-COPY src ./src
-RUN mvn clean package
-
-# Estágio de produção
-FROM openjdk:11-jre-slim
-
-WORKDIR /app
-
-COPY --from=build /app/target/roteiro01-0.0.1-SNAPSHOT.jar app.jar
-
+FROM openjdk:8-jdk-alpine
+VOLUME /tmp
+ARG JAVA_OPTS
+ENV JAVA_OPTS=$JAVA_OPTS
+COPY target/roteiro01-0.0.1-SNAPSHOT.jar todolist.jar
 EXPOSE 8080
-
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT exec java $JAVA_OPTS -jar todolist.jar
+# For Spring-Boot project, use the entrypoint below to reduce Tomcat startup time.
+#ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar todolist.jar
