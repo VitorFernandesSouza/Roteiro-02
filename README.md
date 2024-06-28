@@ -6,4 +6,4 @@ Funcionalidades:
 - Adicionar novas tarefas
 - Visualizar todas as tarefas
 - Atualizar tarefas existentes
-= Excluir tarefas
+- Excluir tarefas
